@@ -21,13 +21,19 @@ async function scrapeKSL(query, city = null, state = null) {
   });
 
   const page = await browser.newPage();
-  let searchUrl = `https://ksl.com/classifieds/search?keyword=${encodeURIComponent(query)}`;
+
+  // ✅ Ensure query is safely encoded for URL
+  const encodedQuery = encodeURIComponent(query || "");
+  let searchUrl = `https://ksl.com/classifieds/search?keyword=${encodedQuery}`;
+
   if (city && state) {
     const encodedCity = encodeURIComponent(city.trim());
     const encodedState = encodeURIComponent(state.trim());
-    searchUrl = `https://ksl.com/classifieds/search/city/${encodedCity}/${encodedState}?keyword=${encodeURIComponent(query)}`;
+    searchUrl = `https://ksl.com/classifieds/search/city/${encodedCity}/${encodedState}?keyword=${encodedQuery}`;
   }
-  
+
+  console.log("📡 Visiting search URL:", searchUrl);
+
   await page.goto(searchUrl, {
     waitUntil: "domcontentloaded",
     timeout: 60000
@@ -35,17 +41,17 @@ async function scrapeKSL(query, city = null, state = null) {
 
   const listings = await page.evaluate(() => {
     const cards = Array.from(document.querySelectorAll(".listing-item"));
-  
+
     return cards.map(card => {
       const titleEl = card.querySelector(".item-info-title a");
       const priceEl = card.querySelector(".item-info-price");
       const locationEl = card.querySelector(".item-address");
       const imageEl = card.querySelector("img");
-  
+
       const title = titleEl?.innerText.trim() || null;
       const price = priceEl?.innerText.replace(/[^\d.]/g, "") || null;
       const locationRaw = locationEl?.innerText.trim() || null;
-  
+
       // Split "Salt Lake City, UT | 3 Hours" into parts
       let location = null;
       let datePosted = null;
@@ -54,10 +60,10 @@ async function scrapeKSL(query, city = null, state = null) {
       } else {
         location = locationRaw;
       }
-  
+
       const listingUrl = titleEl?.href || null;
       const imageUrl = imageEl?.src || null;
-  
+
       return {
         title,
         price,
@@ -68,7 +74,6 @@ async function scrapeKSL(query, city = null, state = null) {
       };
     });
   });
-  
 
   await browser.close();
   return listings;
