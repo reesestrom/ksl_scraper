@@ -29,19 +29,41 @@ async function scrapeKSL(query) {
   });
 
   const listings = await page.evaluate(() => {
-    const cards = Array.from(document.querySelectorAll(".listing-item-info"));
-
+    const cards = Array.from(document.querySelectorAll(".listing-item"));
+  
     return cards.map(card => {
-      const title = card.querySelector("a.listing-title")?.innerText.trim() || null;
-      const price = card.querySelector(".listing-price")?.innerText.replace("$", "").trim() || null;
-      const location = card.querySelector(".listing-stats li:first-child")?.innerText.trim() || null;
-      const datePosted = card.querySelector(".listing-stats li:last-child")?.innerText.trim() || null;
-      const listingUrl = card.querySelector("a.listing-title")?.href || null;
-      const imageUrl = card.parentElement?.querySelector("img")?.src || null;
-
-      return { title, price, location, datePosted, listingUrl, imageUrl };
+      const titleEl = card.querySelector(".item-info-title a");
+      const priceEl = card.querySelector(".item-info-price");
+      const locationEl = card.querySelector(".item-detail-info-line");
+      const imageEl = card.querySelector("img");
+  
+      const title = titleEl?.innerText.trim() || null;
+      const price = priceEl?.innerText.replace(/[^\d.]/g, "") || null;
+      const locationRaw = locationEl?.innerText.trim() || null;
+  
+      // Split "Salt Lake City, UT | 3 Hours" into parts
+      let location = null;
+      let datePosted = null;
+      if (locationRaw?.includes("|")) {
+        [location, datePosted] = locationRaw.split("|").map(str => str.trim());
+      } else {
+        location = locationRaw;
+      }
+  
+      const listingUrl = titleEl?.href || null;
+      const imageUrl = imageEl?.src || null;
+  
+      return {
+        title,
+        price,
+        location,
+        datePosted,
+        listingUrl,
+        imageUrl
+      };
     });
   });
+  
 
   await browser.close();
   return listings;
