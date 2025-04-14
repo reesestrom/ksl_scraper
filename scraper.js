@@ -24,13 +24,9 @@ async function scrapeKSL(query, city = null, state = null) {
 
   // ✅ Ensure query is safely encoded for URL
   const encodedQuery = encodeURIComponent(query || "");
-  let searchUrl = `https://ksl.com/classifieds/search?keyword=${encodedQuery}`;
+  const encodedState = encodeURIComponent(state?.trim() || "UT");
+  const searchUrl = `https://classifieds.ksl.com/search/keyword/${encodedQuery}/${encodedState}`;
 
-  if (city && state) {
-    const encodedCity = encodeURIComponent(city.trim());
-    const encodedState = encodeURIComponent(state.trim());
-    searchUrl = `https://ksl.com/classifieds/search/city/${encodedCity}/${encodedState}?keyword=${encodedQuery}`;
-  }
 
   console.log("📡 Visiting search URL:", searchUrl);
 
