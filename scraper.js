@@ -4,7 +4,7 @@ const fs = require("fs");
 
 puppeteer.use(StealthPlugin());
 
-async function scrapeKSL(query) {
+async function scrapeKSL(query, city = null, state = null) {
   // ✅ Chrome executable fallback logic
   let chromePath = "/usr/bin/google-chrome";
   if (!fs.existsSync(chromePath)) {
@@ -21,8 +21,13 @@ async function scrapeKSL(query) {
   });
 
   const page = await browser.newPage();
-  const searchUrl = `https://ksl.com/classifieds/search?keyword=${encodeURIComponent(query)}`;
-
+  let searchUrl = `https://ksl.com/classifieds/search?keyword=${encodeURIComponent(query)}`;
+  if (city && state) {
+    const encodedCity = encodeURIComponent(city.trim());
+    const encodedState = encodeURIComponent(state.trim());
+    searchUrl = `https://ksl.com/classifieds/search/city/${encodedCity}/${encodedState}?keyword=${encodeURIComponent(query)}`;
+  }
+  
   await page.goto(searchUrl, {
     waitUntil: "domcontentloaded",
     timeout: 60000
