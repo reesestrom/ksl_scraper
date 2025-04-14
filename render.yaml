@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: ksl-scraper
+    env: node
+    plan: free
+    buildCommand: ./render-build.sh
+    startCommand: node server.js
+    runtime: docker
+    envVars:
+      - key: NODE_ENV
+        value: production
+    dockerfilePath: Dockerfile
