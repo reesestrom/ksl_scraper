@@ -1,9 +1,15 @@
-# Use official Node.js image
-FROM node:18-slim
+# Use official Node.js image with full system packages
+FROM debian:bullseye-slim
 
-# Install necessary dependencies for Puppeteer
+# Install Node.js (v18)
+RUN apt-get update && apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs
+
+# Install system dependencies for Puppeteer
 RUN apt-get update && apt-get install -y \
     wget \
+    gnupg \
     ca-certificates \
     fonts-liberation \
     libappindicator3-1 \
@@ -20,29 +26,31 @@ RUN apt-get update && apt-get install -y \
     libxdamage1 \
     libxrandr2 \
     xdg-utils \
-    --no-install-recommends && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory
+# Install Chrome manually
+RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    apt-get update && \
+    apt-get install -y ./google-chrome-stable_current_amd64.deb && \
+    rm google-chrome-stable_current_amd64.deb
+
+# Set working directory
 WORKDIR /app
 
 # Copy project files
 COPY . .
 
-# Install node dependencies
+# Install dependencies
 RUN npm install
 
-# Tell Puppeteer to skip installing Chromium — we'll use the system Chromium
-ENV PUPPETEER_SKIP_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+# Puppeteer config: use system-installed Chrome
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable \
+    PUPPETEER_SKIP_DOWNLOAD=true \
+    NODE_ENV=production
 
-# Install Chromium manually
-RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-    apt install -y ./google-chrome-stable_current_amd64.deb && \
-    rm google-chrome-stable_current_amd64.deb
-
-# Expose the port (must match what your app uses)
+# Expose port
 EXPOSE 3000
 
-# Start your app
+# Start app
 CMD ["node", "server.js"]
