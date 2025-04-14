@@ -31,8 +31,8 @@ RUN apt-get update && apt-get install -y \
 
 # Install Chrome manually
 RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-    apt-get update && \
-    apt-get install -y ./google-chrome-stable_current_amd64.deb && \
+    apt-get update --fix-missing && \
+    apt-get install -y ./google-chrome-stable_current_amd64.deb || apt-get install -fy && \
     rm google-chrome-stable_current_amd64.deb
 
 # Set working directory
