@@ -34,7 +34,7 @@ async function scrapeKSL(query) {
     return cards.map(card => {
       const titleEl = card.querySelector(".item-info-title a");
       const priceEl = card.querySelector(".item-info-price");
-      const locationEl = card.querySelector(".item-detail-info-line");
+      const locationEl = card.querySelector(".item-address");
       const imageEl = card.querySelector("img");
   
       const title = titleEl?.innerText.trim() || null;
