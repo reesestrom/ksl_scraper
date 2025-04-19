@@ -35,6 +35,10 @@ async function scrapeKSL(query, city = null, state = null) {
     timeout: 60000
   });
 
+  const html = await page.content();
+  console.log("🔍 First 500 chars of page:", html.slice(0, 500));
+
+
   const listings = await page.evaluate(() => {
     const cards = Array.from(document.querySelectorAll(".listing-item"));
 
@@ -60,6 +64,7 @@ async function scrapeKSL(query, city = null, state = null) {
       const listingUrl = titleEl?.href || null;
       const imageUrl = imageEl?.src || null;
 
+      print(title, listingUrl)
       return {
         title,
         price,
